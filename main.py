@@ -6,6 +6,9 @@ window_width,window_height = 1280,720
 display_surface = pygame.display.set_mode((window_width,window_height))
 pygame.display.set_caption("New Game")
 
+background = pygame.image.load("images/background.jpeg").convert()
+background = pygame.transform.scale(background, (window_width, window_height))
+
 player_surf = pygame.image.load("images\player.png").convert_alpha()
 player_rect = player_surf.get_frect(center = (window_width/2,(window_height-140)))
 
@@ -16,12 +19,15 @@ metor_surf = pygame.image.load("images\meteor.png").convert_alpha()
 metor_rect = metor_surf.get_frect(center = (window_width/2,window_height/2))
 
 laser_surf = pygame.image.load("images\laser.png").convert_alpha()
-laser_rect = laser_surf.get_frect(bottomleft=(window_width//2,window_height-200))
-x = 0
-y = 0
+laser_rect = laser_surf.get_frect(midbottom = player_rect.midtop)
+x,y = 0,0
 player_direction = pygame.math.Vector2(x,y)
 player_speed = 300
 
+x1,y1 = 0,0
+laser_direction = pygame.math.Vector2(x1,y1)
+laser_speed = 450
+laser_activate = False
 running = True
 clock = pygame.time.Clock()
 while running:
@@ -49,12 +55,25 @@ while running:
     player_direction = player_direction.normalize() if player_direction else player_direction
 
     player_rect.center += player_direction * player_speed * dt
+    if not laser_activate:
+        laser_rect.midbottom = player_rect.midtop
+
+    
+    laser_keys = pygame.key.get_pressed()
+    if laser_keys[pygame.K_SPACE]:
+        laser_activate = True
+        laser_direction.y = -1
+    if laser_activate:
+        laser_rect.center += laser_direction * laser_speed * dt
+    if laser_rect.bottom < 0:
+        laser_activate = False
     
 
     display_surface.fill("gray")
+    display_surface.blit(background, (0, 0))
     for position in star_coordinates:
         display_surface.blit(star_surf,position)
-        display_surface.blit(metor_surf,metor_rect)
+    display_surface.blit(metor_surf,metor_rect)
     display_surface.blit(player_surf,player_rect) 
     display_surface.blit(laser_surf,laser_rect)
 
